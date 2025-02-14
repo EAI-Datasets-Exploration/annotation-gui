@@ -3,7 +3,12 @@ import pandas as pd
 from pathlib import Path
 import streamlit as st
 
-from annotation_gui.stats.helper import calc_z_value, is_stop_criterion_met, calc_p_hat, calc_curr_moe
+from annotation_gui.stats.helper import (
+    calc_z_value,
+    is_stop_criterion_met,
+    calc_p_hat,
+    calc_curr_moe,
+)
 from annotation_gui.utils import create_model_fp_dict, create_dataset_fp_dict
 
 meta_config = configparser.ConfigParser()

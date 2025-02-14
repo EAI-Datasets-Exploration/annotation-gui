@@ -20,14 +20,14 @@ def is_stop_criterion_met(
             return True
     return False
 
+
 def calc_p_hat(n_bad, n_labeled):
     p_hat = n_bad / n_labeled if n_labeled > 0 else 0
     return p_hat
 
+
 def calc_curr_moe(z_value, p_hat, n_labeled):
     curr_moe = (
-        z_value * np.sqrt((p_hat * (1 - p_hat)) / n_labeled)
-        if n_labeled > 0
-        else 1.0
+        z_value * np.sqrt((p_hat * (1 - p_hat)) / n_labeled) if n_labeled > 0 else 1.0
     )
     return curr_moe
