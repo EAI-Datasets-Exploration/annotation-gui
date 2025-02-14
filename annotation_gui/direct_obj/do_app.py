@@ -2,6 +2,7 @@ import configparser
 import pandas as pd
 from pathlib import Path
 import streamlit as st
+import uuid  # For generating unique identifiers
 
 from annotation_gui.stats.helper import (
     calc_z_value,
@@ -10,6 +11,10 @@ from annotation_gui.stats.helper import (
     calc_curr_moe,
 )
 from annotation_gui.utils import create_model_fp_dict, create_dataset_fp_dict
+
+# Initialize session state for tracking the current example
+if "current_index" not in st.session_state:
+    st.session_state.current_index = 0
 
 meta_config = configparser.ConfigParser()
 meta_config.read("config.ini")
@@ -44,7 +49,12 @@ results_dir.mkdir(parents=True, exist_ok=True)
 
 df = pd.read_csv(data_path, usecols=["full_prompt", "direct_objects", "verbs"])
 
-# TODO Shuffle data and add unique ids
+# Shuffle the dataset and add a unique identifier
+if "unique_id" not in df.columns:
+    df["unique_id"] = [str(uuid.uuid4()) for _ in range(len(df))]  # Add unique IDs
+    df = df.sample(frac=1, random_state=42).reset_index(
+        drop=True
+    )  # Shuffle the dataset
 
 if "annotation_quality" not in df.columns:
     df["annotation_quality"] = None
@@ -70,28 +80,51 @@ st.write(f"Proportion of Bad Responses: **{p_hat:.2%}**")
 st.write(f"Margin of Error: **{calc_curr_moe(z_value, p_hat, n_labeled):.2%}**")
 
 if is_stop_criterion_met(n_labeled, min_n_samples, n_bad, z_value, moe_threshold):
-    st.success("Stopping Criterion Met! No more annotations are required.")
+    st.success("✨ Stopping Criterion Met! No more annotations are required. ✨")
     st.stop()
 
-row_idx = df[df["annotation_quality"].isna()].index.min()
-if row_idx is not None and not pd.isna(row_idx):
-    st.subheader("Annotate Example")
-    st.write(f"**Prompt:** {df.loc[row_idx, 'full_prompt']}")
-    st.write(f"**Direct Objects:** {df.loc[row_idx, 'direct_objects']}")
-    st.write(f"**Verbs:** {df.loc[row_idx, 'verbs']}")
+# Get the current example index from session state
+current_index = st.session_state.current_index
 
-    # Annotation buttons
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("Good!"):
-            df.loc[row_idx, "annotation_quality"] = "good"
-            df.to_csv(results_csv_path, index=False)
-            st.rerun()
-    with col2:
-        if st.button("Bad!"):
-            df.loc[row_idx, "annotation_quality"] = "bad"
-            df.to_csv(results_csv_path, index=False)
-            st.rerun()
-else:
-    st.success(f"All examples in '{data_choice}' are annotated!")
+# Ensure the current index is within bounds
+if current_index >= len(df):
+    current_index = len(df) - 1
+if current_index < 0:
+    current_index = 0
+
+# Display the current example
+st.subheader("Annotate Example")
+st.write(f"**Prompt:** {df.loc[current_index, 'full_prompt']}")
+st.write(f"**Direct Objects:** {df.loc[current_index, 'direct_objects']}")
+st.write(f"**Verbs:** {df.loc[current_index, 'verbs']}")
+
+# Annotation buttons
+col1, col2, col3, col4, col5, col6 = st.columns([1, 1, 1, 1, 1, 1])
+with col1:
+    if st.button("⏪ Prev"):
+        st.session_state.current_index -= 1
+        st.rerun()
+with col4:
+    if st.button("Good! ✅"):
+        df.loc[current_index, "annotation_quality"] = "good"
+        df.to_csv(results_csv_path, index=False)
+        st.session_state.current_index += 1
+        st.rerun()
+with col3:
+    if st.button("Bad! ❌"):
+        df.loc[current_index, "annotation_quality"] = "bad"
+        df.to_csv(results_csv_path, index=False)
+        st.session_state.current_index += 1
+        st.rerun()
+with col6:
+    if st.button("Next ⏩"):
+        st.session_state.current_index += 1
+        st.rerun()
+
+# Display the current example number
+st.write(f"**Example {current_index + 1} of {len(df)}**")
+
+# If all examples are annotated
+if df["annotation_quality"].notna().all():
+    st.success(f"🎉 All examples in '{data_choice}' are annotated! 🎉")
     st.write(df)

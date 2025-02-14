@@ -10,10 +10,8 @@ TODO
 - ```$ make dev_install```
 
 ## How to Run
-This package assumes you also have the ```dataset-download-scripts``` package. This is because line 33 in this package's ```__main__.py``` references the ```metadata.json``` file in the ```dataset-download-scripts``` package.
-
 - Alter or setup your preferred experiment configuration in ```annotation-gui/config.ini```.
-- ```$ python -m direct_obj_extractor```
+- ```$ python -m annotation_gui```
 
 **WARNING: THIS SCRIPT ASSUMES ACCESS TO GPU RESOURCES. ADJUST BATCH SIZES IN SOME OF THE FEATURE ACQUISITION FUNCTIONS TO BETTER SUIT YOUR OWN MACHINES.**
 
