@@ -1,4 +1,4 @@
-# annotation_gui
+# annotation-gui
 
 contact: slwanna@utexas.edu
 

@@ -6,8 +6,9 @@ dependencies = [
     "numpy",
     "ipykernel",
     "ipython",
-    "matplotlib",,
-    "steamlit",
+    "matplotlib",
+    "streamlit",
+    "scipy"
 ]
 requires-python = "~=3.10"
 
